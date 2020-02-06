@@ -1,6 +1,10 @@
 'use-strict'
 const UserModel = require('../models/user.model');
 const bcrypt = require('bcrypt-nodejs');
+const jwt = require('../services/jwt.service');
+const mongoosePaginate = require('mongoose-pagination');
+const fs = require('fs');
+const path = require('path');
 
 
 module.exports = class UserController {
@@ -13,6 +17,11 @@ module.exports = class UserController {
         res.status(200).send({ msg: 'Accion de pruebas en el servidor de node.js' });
     }
 
+    /**
+     * Método para guardar un usuario
+     * @param {*} req 
+     * @param {*} res 
+     */
     static saveUser(req, res) {
 
         // Validamos los parametros de entrada
@@ -20,10 +29,10 @@ module.exports = class UserController {
         var user = new UserModel();
 
         if (params.name && params.surname && params.nick && params.email && params.password) {
-            user.name = params.name;
-            user.surname = params.surname;
-            user.nick = params.nick;
-            user.email = params.email;
+            user.name = params.name.trim();
+            user.surname = params.surname.toLowerCase().trim();
+            user.nick = params.nick.trim();
+            user.email = params.email.toLowerCase().trim();
             user.role = 'ROLE_USER';
             user.image = null;
 
@@ -40,21 +49,15 @@ module.exports = class UserController {
                         message: 'Error al guardar en base de datos'
                     });
                 }
-
                 if (users && users.length >= 1) {
                     return res.status(200).send({
                         ok: false,
                         message: 'Usuario ya existe en la bd'
                     });
                 } else {
-                    bcrypt.hash(user.password, null, null, (err, hash) => {
-
-                        //console.log(hash);
-
+                    bcrypt.hash(params.password, null, null, (err, hash) => {
                         user.password = hash;
-
                         user.save((err, userStored) => {
-
                             if (err) {
                                 return res.status(500).send({
                                     ok: false,
@@ -92,4 +95,245 @@ module.exports = class UserController {
 
     }
 
+    /**
+     * Método para logearse en la app
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static loginUser(req, res) {
+        var params = req.body;
+        var email = params.email.toLowerCase().trim();
+        var password = params.password.trim();
+
+        UserModel.findOne({ email: email }, (err, user) => {
+            //console.log(user);
+            if (err) {
+                return res.status(500).send({
+                    OK: false,
+                    message: 'Error en la petición'
+                });
+            }
+
+            if (user) {
+                bcrypt.compare(password, user.password, (err, check) => {
+                    if (check) {
+                        if (params.token) {
+                            // devolver el token
+                            let token = jwt.createToken(user);
+                            // generear el token
+                            return res.status(200).send({ token });
+                        } else {
+                            // devolver datos de usuario pero no el password
+                            user.password = undefined;
+                            return res.status(200).send({
+                                OK: true,
+                                user
+                            });
+                        }
+                    } else {
+                        return res.status(404).send({
+                            OK: false,
+                            message: 'Usuario no identificado'
+                        });
+                    }
+                });
+            } else {
+                return res.status(404).send({
+                    OK: false,
+                    message: 'Usuario no identificado, o no esta registrado'
+                });
+            }
+        });
+    }
+
+    /**
+     * Obtener un usuario
+     * @param {*} req -> Id del usuario
+     * @param {*} res 
+     */
+    static getUser(req, res) {
+        const idUser = req.params.id;
+        UserModel.findById(idUser, (err, user) => {
+            if (err) {
+                return res.status(500).send({
+                    OK: false,
+                    message: 'Error en la petición'
+                });
+            }
+
+            if (!user) {
+                return res.status(404).send({
+                    OK: false,
+                    message: 'Usuario no identificado, o no esta registrado'
+                });
+            }
+
+            return res.status(200).send({ OK: true, user });
+        });
+    }
+
+    /**
+     * Obtener todos los usuarios paginados
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static getUsers(req, res) {
+        // comprobamos el usuario logeado
+        const identityUserId = req.user.sub;
+
+        var page = 1;
+        var itemsPerPage = 5;
+
+        if (req.params.page) {
+            page = req.params.page;
+        }
+
+        UserModel.find().sort('_id').paginate(page, itemsPerPage, (err, users, total) => {
+            if (err) {
+                return res.status(500).send({
+                    OK: false,
+                    message: 'Error en la petición'
+                });
+            }
+            if (!users) {
+                return res.status(404).send({
+                    OK: false,
+                    message: 'No hay usuarios disponibles'
+                });
+            }
+            return res.status(200).send({
+                OK: true,
+                users,
+                total,
+                pages: Math.ceil(total / itemsPerPage)
+            });
+        });
+    }
+
+    /**
+     * Método para actualizar los usuarios
+     * @param {*} req -> Pasamos el id del user
+     * @param {*} res 
+     */
+    static updateUser(req, res) {
+        var userId = req.params.id;
+        var update = req.body;
+        // Quitamos la propiedad password del user
+        delete update.password;
+
+        if (userId != req.user.sub) {
+            return res.status(500).send({
+                OK: false,
+                message: 'No tienes permiso para actualizar datos del usuario'
+            });
+        }
+
+        UserModel.findByIdAndUpdate(userId, update, { new: true, safe: true }, (err, userUpdate) => {
+            if (err) {
+                return res.status(500).send({
+                    OK: false,
+                    message: 'Error en la petición'
+                });
+            }
+            if (!userUpdate) {
+                return res.status(404).send({
+                    OK: false,
+                    message: 'No se ha podido actualizar el usuario'
+                });
+            }
+            return res.status(200).send({
+                OK: true,
+                userUpdate
+            });
+        });
+    }
+
+    /**
+     * Método para subir imagenes
+     * @param {*} req -> Id, de users
+     * @param {*} res 
+     */
+    static uploadImage(req, res) {
+        var userId = req.params.id;
+        var update = req.body;
+        // Quitamos la propiedad password del user
+        delete update.password;
+
+        if (req.files) {
+            var filePath = req.files.image.path;
+            var fileSplit = filePath.split('\/');
+            var fileName = fileSplit[2];
+            var extFile = fileName.split('\.')[1];
+
+            if (userId != req.user.sub) {
+                // Eliminamos el fichero
+                return removeFileOfUploads(res, filePath, 'No tienes permiso para actualizar datos del usuario');
+            }
+
+            if (extFile === 'png' || extFile === 'gif' || extFile === 'jpeg' || extFile === 'jpg') {
+                // Actualizamos el documento de usuario logueado
+                UserModel.findByIdAndUpdate(userId, { image: fileName }, { new: true, safe: true }, (err, userUpdate) => {
+                    if (err) {
+                        return res.status(500).send({
+                            OK: false,
+                            message: 'Error en la petición'
+                        });
+                    }
+                    if (!userUpdate) {
+                        return res.status(404).send({
+                            OK: false,
+                            message: 'No se ha podido actualizar el usuario'
+                        });
+                    }
+                    return res.status(200).send({
+                        OK: true,
+                        userUpdate
+                    });
+                });
+            } else {
+                // Eliminamos el fichero
+                return removeFileOfUploads(res, filePath, 'Extension no válida');
+            }
+        } else {
+            return res.status(200).send({
+                OK: false,
+                message: 'No se han subido archivos'
+            });
+        }
+    }
+
+    /**
+     * Método para devover una imagen
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static getImageFile(req, res) {
+        var fileImage = req.params.fileImage;
+        var pathFile = './uploads/users/' + fileImage;
+
+        fs.exists(pathFile, (exists) => {
+            if (exists) {
+                res.sendFile(path.resolve(pathFile));
+            } else {
+                res.status(200).send({ OK: false, message: 'No existe la imagen' });
+            }
+        });
+    }
+
+
+}
+
+/**
+ * Eliminar los ficheros y devolver un aviso
+ * @param {*} res 
+ * @param {*} filePath 
+ * @param {*} message 
+ */
+function removeFileOfUploads(res, filePath, message) {
+    fs.unlink(filePath, (err) => {
+        return res.status(200).send({
+            OK: false,
+            message
+        });
+    });
 }
