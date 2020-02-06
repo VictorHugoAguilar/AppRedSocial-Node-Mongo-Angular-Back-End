@@ -12,8 +12,7 @@ npm install
 
 `````
 mongodb --dbpath /Users/.../data/mongo-data/
-````
-
+`````
 
 # Levantar node
 
