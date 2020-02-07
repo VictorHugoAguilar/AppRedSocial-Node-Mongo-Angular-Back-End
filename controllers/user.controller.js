@@ -221,12 +221,20 @@ module.exports = class UserController {
                     message: 'No hay usuarios disponibles'
                 });
             }
-            return res.status(200).send({
-                OK: true,
-                users,
-                total,
-                pages: Math.ceil(total / itemsPerPage)
+
+            followUserId(identityUserId).then(value => {
+
+                return res.status(200).send({
+                    OK: true,
+                    users: users,
+                    usersFollowing: value.following,
+                    usersFollowMe: value.followed,
+                    total: total,
+                    pages: Math.ceil(total / itemsPerPage)
+                });
             });
+
+
         });
     }
 
@@ -373,6 +381,42 @@ async function followThisUser(identityUserId, userId) {
     var followed = await FollowModel.findOne({ 'user': userId, 'followed': identityUserId })
         .exec()
         .then(followed => followed)
+        .catch(err => handleError(err));
+
+    return {
+        following: following,
+        followed: followed
+    };
+}
+
+/**
+ * Obtener un array limpio de follows
+ * @param {*} userId 
+ */
+async function followUserId(userId) {
+    var following = await FollowModel.find({ 'user': userId })
+        .select({ '_id': 0, '__v': 0, 'user': 0 })
+        .exec()
+        .then(follows => {
+            var followsClean = [];
+            follows.forEach(follow => {
+                followsClean.push(follow.followed);
+            });
+            return followsClean;
+        })
+        .catch(err => handleError(err));
+
+
+    var followed = await FollowModel.find({ 'followed': userId })
+        .select({ '_id': 0, '__v': 0, 'followed': 0 })
+        .exec()
+        .then(follows => {
+            var followsClean = [];
+            follows.forEach(follow => {
+                followsClean.push(follow.user);
+            });
+            return followsClean;
+        })
         .catch(err => handleError(err));
 
     return {
