@@ -1,6 +1,8 @@
 'use strict'
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+var mongoosePaginate = require('mongoose-paginate');
+
 
 const FollowSchema = Schema({
     user: {
@@ -13,5 +15,8 @@ const FollowSchema = Schema({
     }
 
 });
+
+FollowSchema.plugin(mongoosePaginate);
+
 
 module.exports = mongoose.model('Follow', FollowSchema);

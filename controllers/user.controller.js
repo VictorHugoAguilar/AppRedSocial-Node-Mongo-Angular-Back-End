@@ -1,5 +1,7 @@
 'use-strict'
+// Cargamos los modelos
 const UserModel = require('../models/user.model');
+const FollowModel = require('../models/follow.model');
 const bcrypt = require('bcrypt-nodejs');
 const jwt = require('../services/jwt.service');
 const mongoosePaginate = require('mongoose-pagination');
@@ -168,7 +170,25 @@ module.exports = class UserController {
                 });
             }
 
-            return res.status(200).send({ OK: true, user });
+            // async function followThisUser 
+            followThisUser(req.user.sub, idUser)
+                .then(value => {
+                    user.password = undefined;
+                    return res.status(200)
+                        .send({
+                            OK: true,
+                            user: user,
+                            following: value.following,
+                            followed: value.followed
+                        });
+                })
+                .catch(err => {
+                    return res.status(500).send({
+                        OK: false,
+                        message: 'Error al comprobar el seguimiento',
+                        error: err
+                    });
+                });
         });
     }
 
@@ -336,4 +356,27 @@ function removeFileOfUploads(res, filePath, message) {
             message
         });
     });
+}
+
+/**
+ * Funcion asincrona para obtener follows, y followed
+ * @param {*} identityUserId 
+ * @param {*} userId 
+ */
+async function followThisUser(identityUserId, userId) {
+    var following = await FollowModel
+        .findOne({ 'user': identityUserId, 'followed': userId })
+        .exec()
+        .then(following => following)
+        .catch(err => handleError(err));
+
+    var followed = await FollowModel.findOne({ 'user': userId, 'followed': identityUserId })
+        .exec()
+        .then(followed => followed)
+        .catch(err => handleError(err));
+
+    return {
+        following: following,
+        followed: followed
+    };
 }

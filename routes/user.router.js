@@ -9,6 +9,8 @@ const mdUpload = multipart({ uploadDir: './uploads/users' });
 
 const api = express.Router();
 
+
+// CONTROLADORES DE USUARIOS
 api.get('/home', UserController.home);
 // pasamos con el middleware
 api.get('/prueba', mda.authentification, UserController.prueba);
