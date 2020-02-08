@@ -1,4 +1,9 @@
-'use-strict'
+/*jslint node: true */
+'use strict';
+
+/*jshint esversion: 6 */
+
+// Cargamos los modulos
 const jwt = require('jwt-simple');
 const moment = require('moment');
 

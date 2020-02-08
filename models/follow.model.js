@@ -1,8 +1,12 @@
-'use strict'
+/*jslint node: true */
+'use strict';
+
+/*jshint esversion: 6 */
+
+// Cargamos los modulos
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 var mongoosePaginate = require('mongoose-paginate');
-
 
 const FollowSchema = Schema({
     user: {

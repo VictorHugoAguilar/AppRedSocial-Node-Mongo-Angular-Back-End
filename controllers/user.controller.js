@@ -1,4 +1,8 @@
-'use-strict'
+/*jslint node: true */
+'use strict';
+
+/*jshint esversion: 6 */
+
 // Cargamos los modelos
 const UserModel = require('../models/user.model');
 const FollowModel = require('../models/follow.model');
@@ -14,12 +18,17 @@ const path = require('path');
 
 module.exports = class UserController {
 
-    static home(req, res) {
-        res.status(200).send({ msg: 'Accion de home en el servidor de node.js' });
-    }
-
-    static prueba(req, res) {
-        res.status(200).send({ msg: 'Accion de pruebas en el servidor de node.js' });
+    /**
+     * Método de prueba de conexión al controlador
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static checkUser(req, res) {
+        res.status(200)
+            .send({
+                OK: true,
+                message: 'Probando desde la ruta de UserController'
+            });
     }
 
     /**

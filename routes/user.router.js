@@ -1,5 +1,12 @@
-'use strict'
+/*jslint node: true */
+'use strict';
+
+/*jshint esversion: 6 */
+
+// Cargamos los modulos
 const express = require('express');
+
+// Cargamos los controladores
 const UserController = require('../controllers/user.controller');
 
 // Middleware
@@ -9,11 +16,8 @@ const mdUpload = multipart({ uploadDir: './uploads/users' });
 
 const api = express.Router();
 
-
 // CONTROLADORES DE USUARIOS
-api.get('/home', UserController.home);
-// pasamos con el middleware
-api.get('/prueba', mda.authentification, UserController.prueba);
+api.get('/checkUser', mda.authentification, UserController.checkUser);
 api.post('/register', UserController.saveUser);
 api.post('/login', UserController.loginUser);
 api.get('/user/:id', mda.authentification, UserController.getUser);

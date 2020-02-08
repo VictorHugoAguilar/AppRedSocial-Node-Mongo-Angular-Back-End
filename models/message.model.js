@@ -1,4 +1,9 @@
-'use strict'
+/*jslint node: true */
+'use strict';
+
+/*jshint esversion: 6 */
+
+// Cargamos los modulos
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -19,6 +24,10 @@ const MessageSchema = Schema({
     text: {
         type: String,
         trim: false
+    },
+    view: {
+        type: String,
+        trim: true
     }
 });
 

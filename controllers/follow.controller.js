@@ -1,4 +1,9 @@
-'use-strict'
+/*jslint node: true */
+'use strict';
+
+/*jshint esversion: 6 */
+
+// Cargamos los modulos
 const path = require('path');
 const fs = require('fs');
 
@@ -9,8 +14,21 @@ const Follow = require('../models/follow.model');
 
 module.exports = class FollowController {
 
+    /**
+     * Método de prueba de conexión al controlador
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static checkFollow(req, res) {
+        return res.status(200)
+            .send({
+                OK: true,
+                message: 'Probando la ruta del controlador FollowController'
+            });
+    }
+
     static saveFollow(req, res) {
-        const params = req.body;
+        var params = req.body;
         var follow = new Follow();
 
         follow.user = req.user.sub;
@@ -18,15 +36,24 @@ module.exports = class FollowController {
 
         follow.save((err, followStored) => {
             if (err) {
-                return res.status(500).send({ OK: false, message: 'Error al guardar el seguimiento' });
+                return res.status(500)
+                    .send({
+                        OK: false,
+                        message: 'Error al guardar el seguimiento'
+                    });
             }
             if (!followStored) {
-                return res.status(404).send({ OK: false, message: 'No se pudo registrar el seguimiento' });
+                return res.status(404)
+                    .send({
+                        OK: false,
+                        message: 'No se pudo registrar el seguimiento'
+                    });
             }
-            return res.status(200).send({
-                OK: true,
-                followStored
-            });
+            return res.status(200)
+                .send({
+                    OK: true,
+                    followStored: followStored
+                });
         });
     }
 
@@ -39,10 +66,18 @@ module.exports = class FollowController {
             'followed': followId
         }).deleteOne(err => {
             if (err) {
-                return res.status(500).send({ OK: false, message: 'Error al eliminar el seguimiento' });
+                return res.status(500)
+                    .send({
+                        OK: false,
+                        message: 'Error al eliminar el seguimiento'
+                    });
 
             }
-            return res.status(200).send({ OK: true, message: 'Se ha dejado de seguir' });
+            return res.status(200)
+                .send({
+                    OK: true,
+                    message: 'Se ha dejado de seguir'
+                });
         });
     }
 
@@ -58,21 +93,31 @@ module.exports = class FollowController {
         var page = req.params.page ? req.params.page : req.params.id;
         var itemPerPage = 3;
 
-        Follow.find({ user: userId }).populate({ path: 'followed' }).paginate(page, itemPerPage, (err, follows, total) => {
-            if (err) {
-                return res.status(500).send({ OK: false, message: 'Error en el servidor' });
-            }
-            if (!follows) {
-                return res.status(200).send({ OK: false, message: 'No esta siguiendo a ningun usuario' });
-            }
+        Follow.find({ user: userId })
+            .populate({ path: 'followed' })
+            .paginate(page, itemPerPage, (err, follows, total) => {
+                if (err) {
+                    return res.status(500)
+                        .send({
+                            OK: false,
+                            message: 'Error en el servidor'
+                        });
+                }
+                if (!follows) {
+                    return res.status(200)
+                        .send({
+                            OK: false,
+                            message: 'No esta siguiendo a ningun usuario'
+                        });
+                }
 
-            return res.status(200).send({
-                OK: true,
-                total: total,
-                pages: Math.ceil(total / itemPerPage),
-                follows
+                return res.status(200).send({
+                    OK: true,
+                    total: total,
+                    pages: Math.ceil(total / itemPerPage),
+                    follows: follows
+                });
             });
-        });
     }
 
     /**
@@ -85,21 +130,32 @@ module.exports = class FollowController {
         var page = req.params.page ? req.params.page : req.params.id;
         var itemPerPage = 3;
 
-        Follow.find({ followed: userId }).populate('user').paginate(page, itemPerPage, (err, follows, total) => {
-            if (err) {
-                return res.status(500).send({ OK: false, message: 'Error en el servidor' });
-            }
-            if (!follows) {
-                return res.status(200).send({ OK: false, message: 'No te sigue ningún usuario' });
-            }
+        Follow.find({ followed: userId })
+            .populate('user')
+            .paginate(page, itemPerPage, (err, follows, total) => {
+                if (err) {
+                    return res.status(500)
+                        .send({
+                            OK: false,
+                            message: 'Error en el servidor'
+                        });
+                }
+                if (!follows) {
+                    return res.status(200)
+                        .send({
+                            OK: false,
+                            message: 'No te sigue ningún usuario'
+                        });
+                }
 
-            return res.status(200).send({
-                OK: true,
-                total: total,
-                pages: Math.ceil(total / itemPerPage),
-                follows
+                return res.status(200)
+                    .send({
+                        OK: true,
+                        total: total,
+                        pages: Math.ceil(total / itemPerPage),
+                        follows: follows
+                    });
             });
-        });
     }
 
     /**
@@ -110,18 +166,28 @@ module.exports = class FollowController {
     static getMyFollows(req, res) {
         var userId = req.user.sub;
 
-        Follow.find({ user: userId }).populate('user followed').exec((err, follows) => {
-            if (err) {
-                return res.status(500).send({ OK: false, message: 'Error en el servidor' });
-            }
-            if (!follows) {
-                return res.status(200).send({ OK: false, message: 'No siguies a ningún usuario' });
-            }
-            return res.status(200).send({
-                OK: true,
-                follows
+        Follow.find({ user: userId })
+            .populate('user followed')
+            .exec((err, follows) => {
+                if (err) {
+                    return res.status(500)
+                        .send({
+                            OK: false,
+                            message: 'Error en el servidor'
+                        });
+                }
+                if (!follows) {
+                    return res.status(200)
+                        .send({
+                            OK: false,
+                            message: 'No siguies a ningún usuario'
+                        });
+                }
+                return res.status(200).send({
+                    OK: true,
+                    follows: follows
+                });
             });
-        });
     }
 
     /**
@@ -138,19 +204,27 @@ module.exports = class FollowController {
             find = Follow.find({ followed: userId });
         }
 
-        find.populate('user followed').exec((err, follows) => {
-            if (err) {
-                return res.status(500).send({ OK: false, message: 'Error en el servidor' });
-            }
-            if (!follows) {
-                return res.status(200).send({ OK: false, message: 'No siguies a ningún usuario' });
-            }
-            return res.status(200).send({
-                OK: true,
-                follows
+        find.populate('user followed')
+            .exec((err, follows) => {
+                if (err) {
+                    return res.status(500)
+                        .send({
+                            OK: false,
+                            message: 'Error en el servidor'
+                        });
+                }
+                if (!follows) {
+                    return res.status(200)
+                        .send({
+                            OK: false,
+                            message: 'No siguies a ningún usuario'
+                        });
+                }
+                return res.status(200).send({
+                    OK: true,
+                    follows: follows
+                });
             });
-        });
-
     }
 
-}
+};

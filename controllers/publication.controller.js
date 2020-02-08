@@ -1,4 +1,9 @@
-'use-strict'
+/*jslint node: true */
+'use strict';
+
+/*jshint esversion: 6 */
+
+// Cargamos los modulos
 const path = require('path');
 const fs = require('fs');
 const moment = require('moment');
@@ -16,11 +21,12 @@ module.exports = class PublicationController {
      * @param {*} req 
      * @param {*} res 
      */
-    static checkStatusPage(req, res) {
-        return res.status(200).send({
-            OK: true,
-            message: 'Hola desde la ruta de publicaciones'
-        });
+    static checkPublication(req, res) {
+        return res.status(200)
+            .send({
+                OK: true,
+                message: 'Hola desde la ruta de PublicationController'
+            });
     }
 
     /**
@@ -249,8 +255,6 @@ module.exports = class PublicationController {
             }
         });
     }
-
-
 };
 
 
@@ -261,7 +265,6 @@ module.exports = class PublicationController {
  * @param {*} message 
  */
 function removeFileOfUploads(res, filePath, message) {
-    console.log('eliminamos')
     fs.unlink(filePath, (err) => {
         return res.status(200).send({
             OK: false,
