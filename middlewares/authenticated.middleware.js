@@ -22,8 +22,10 @@ module.exports = class Ensure {
 
         var token = req.headers.authorization.replace(/['"]+/g, '');
 
+        var payload = null;
+
         try {
-            var payload = jwt.decode(token, secret);
+            payload = jwt.decode(token, secret);
             if (payload.exp <= moment().unix()) {
                 res.status(401).send({
                     OK: false,
@@ -42,4 +44,4 @@ module.exports = class Ensure {
         next();
     }
 
-}
+};

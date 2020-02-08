@@ -5,7 +5,14 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "nodemon --exec babel-node index.js"
+        "start": "nodemon index.js"
+    },
+    "jshintConfig": {
+        "undef": false,
+        "unused": false,
+        "globals": {
+            "MY_GLOBAL": true
+        }
     },
     "author": "Victor Hugo Aguilar Aguilar",
     "license": "MIT",
@@ -32,6 +39,7 @@
         "babel": "^6.23.0",
         "babel-cli": "^6.26.0",
         "install": "^0.13.0",
+        "jshint": "^2.11.0",
         "nodemon": "^2.0.2",
         "npm": "^6.13.7"
     }

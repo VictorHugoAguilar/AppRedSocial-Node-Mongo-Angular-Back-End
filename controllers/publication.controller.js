@@ -206,7 +206,6 @@ module.exports = class PublicationController {
 
         if (req.files) {
             var filePath = req.files.image.path;
-            console.log(filePath)
             var fileSplit = filePath.split('\/');
             var fileName = fileSplit[2];
             var fileExt = fileName.split('\.')[1];
@@ -214,7 +213,6 @@ module.exports = class PublicationController {
             if (fileExt === 'png' || fileExt === 'gif' || fileExt === 'jpg' || fileExt === 'jpeg') {
 
                 Publication.findOne({ 'user': req.user.sub, '_id': publicationId }).exec((err, publication) => {
-                    console.log(publication)
                     if (publication || publication !== null) {
                         Publication.findByIdAndUpdate(publicationId, { file: fileName }, { new: true, safe: true }, (err, publicationUpdated) => {
                             if (err) {

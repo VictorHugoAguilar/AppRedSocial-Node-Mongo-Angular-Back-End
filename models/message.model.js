@@ -9,7 +9,7 @@ const Schema = mongoose.Schema;
 
 const MessageSchema = Schema({
 
-    emmiter: {
+    emitter: {
         type: Schema.ObjectId,
         ref: 'User'
     },
@@ -17,7 +17,7 @@ const MessageSchema = Schema({
         type: Schema.ObjectId,
         ref: 'User'
     },
-    created_At: {
+    created_at: {
         type: String,
         trim: true
     },
@@ -25,7 +25,7 @@ const MessageSchema = Schema({
         type: String,
         trim: false
     },
-    view: {
+    viewed: {
         type: String,
         trim: true
     }

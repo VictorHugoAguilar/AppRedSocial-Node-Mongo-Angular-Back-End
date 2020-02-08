@@ -368,8 +368,7 @@ module.exports = class UserController {
         });
     }
 
-
-}
+};
 
 /**
  * Eliminar los ficheros y devolver un aviso
