@@ -2,6 +2,9 @@
 // Cargamos los modelos
 const UserModel = require('../models/user.model');
 const FollowModel = require('../models/follow.model');
+const PublicationModel = require('../models/publication.model');
+
+// Cargamos los modulos
 const bcrypt = require('bcrypt-nodejs');
 const jwt = require('../services/jwt.service');
 const mongoosePaginate = require('mongoose-pagination');
@@ -414,9 +417,15 @@ async function getCountFollow(userId) {
         .then(count => count)
         .catch(err => handleError(err));
 
+    var publication = await PublicationModel.count({ 'user': userId })
+        .exec()
+        .then(count => count)
+        .catch(err => handleError(err));
+
     return {
         following: following,
-        followed: followed
+        followed: followed,
+        publications: publication
     }
 }
 
