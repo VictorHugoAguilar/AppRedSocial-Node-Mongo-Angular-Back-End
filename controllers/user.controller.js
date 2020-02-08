@@ -348,6 +348,14 @@ module.exports = class UserController {
         });
     }
 
+    static getCounters(req, res) {
+        var userId = req.params.id ? req.params.id : req.user.sub;
+
+        getCountFollow(userId).then(value => {
+            return res.status(200).send(value);
+        });
+    }
+
 
 }
 
@@ -388,6 +396,31 @@ async function followThisUser(identityUserId, userId) {
         followed: followed
     };
 }
+
+
+/**
+ * Obtenemos un contador de following y followed
+ * @param {*} userId 
+ */
+async function getCountFollow(userId) {
+
+    var following = await FollowModel.count({ 'user': userId })
+        .exec()
+        .then(count => count)
+        .catch(err => handleError(err));
+
+    var followed = await FollowModel.count({ 'followed': userId })
+        .exec()
+        .then(count => count)
+        .catch(err => handleError(err));
+
+    return {
+        following: following,
+        followed: followed
+    }
+}
+
+
 
 /**
  * Obtener un array limpio de follows

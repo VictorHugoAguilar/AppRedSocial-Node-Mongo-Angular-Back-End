@@ -21,6 +21,7 @@ api.get('/users/:page?', mda.authentification, UserController.getUsers);
 api.put('/update/:id', mda.authentification, UserController.updateUser);
 api.post('/uploadImage/:id', [mda.authentification, mdUpload], UserController.uploadImage);
 api.get('/getImage/:fileImage', mda.authentification, UserController.getImageFile);
+api.get('/counter/:id?', mda.authentification, UserController.getCounters);
 
 
 module.exports = api;
