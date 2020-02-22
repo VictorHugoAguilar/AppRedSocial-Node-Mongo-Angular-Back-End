@@ -17,9 +17,8 @@ const PublicationSchema = Schema({
         type: String,
         trim: true
     },
-    created_At: {
-        type: String,
-        trim: true
+    createdAt: {
+        type: Number
     },
     user: {
         type: Schema.ObjectId,

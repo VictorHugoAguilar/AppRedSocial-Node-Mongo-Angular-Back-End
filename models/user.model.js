@@ -13,7 +13,7 @@ const UserSchema = Schema({
         type: String,
         trim: true
     },
-    surmane: {
+    surname: {
         type: String,
         trim: true
     },

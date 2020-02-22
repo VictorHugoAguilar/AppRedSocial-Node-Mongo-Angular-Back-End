@@ -80,6 +80,7 @@ module.exports = class UserController {
                             }
 
                             if (userStored) {
+                                userStored.password = undefined;
                                 return res.status(200).send({ user: userStored });
                             } else {
                                 return res.status(404).send({
@@ -104,9 +105,6 @@ module.exports = class UserController {
                 }
             });
         }
-
-
-
     }
 
     /**
@@ -214,7 +212,7 @@ module.exports = class UserController {
         const identityUserId = req.user.sub;
 
         var page = 1;
-        var itemsPerPage = 5;
+        var itemsPerPage = 6;
 
         if (req.params.page) {
             page = req.params.page;
@@ -268,24 +266,40 @@ module.exports = class UserController {
             });
         }
 
-        UserModel.findByIdAndUpdate(userId, update, { new: true, safe: true }, (err, userUpdate) => {
-            if (err) {
-                return res.status(500).send({
-                    OK: false,
-                    message: 'Error en la petición'
-                });
-            }
-            if (!userUpdate) {
+        UserModel.findOne({
+            $or: [
+                { email: update.email.toLowerCase() },
+                { nick: update.nick.toLowerCase() }
+            ]
+        }).exec((err, user) => {
+            if (user && user._id != userId) {
                 return res.status(404).send({
                     OK: false,
-                    message: 'No se ha podido actualizar el usuario'
+                    message: 'Los datos ya están en uso'
                 });
             }
-            return res.status(200).send({
-                OK: true,
-                userUpdate
+
+            UserModel.findByIdAndUpdate(userId, update, { new: true, safe: true }, (err, userUpdate) => {
+                if (err) {
+                    return res.status(500).send({
+                        OK: false,
+                        message: 'Error en la petición'
+                    });
+                }
+                if (!userUpdate) {
+                    return res.status(404).send({
+                        OK: false,
+                        message: 'No se ha podido actualizar el usuario'
+                    });
+                }
+                return res.status(200).send({
+                    OK: true,
+                    userUpdate
+                });
             });
         });
+
+
     }
 
     /**
@@ -360,6 +374,11 @@ module.exports = class UserController {
         });
     }
 
+    /**
+     * Obtener estadisticas
+     * @param {*} req 
+     * @param {*} res 
+     */
     static getCounters(req, res) {
         var userId = req.params.id ? req.params.id : req.user.sub;
 

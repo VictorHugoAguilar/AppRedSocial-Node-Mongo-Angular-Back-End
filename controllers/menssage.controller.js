@@ -76,9 +76,10 @@ module.exports = class MessageController {
     static getReceivedMessages(req, res) {
         var userId = req.user.sub;
         var page = req.params.page ? req.params.page : '1';
-        var itemsPerPage = 3;
+        var itemsPerPage = 5;
 
         Message.find({ 'receiver': userId })
+            .sort({ 'created_at': -1 })
             .populate('emitter', 'name surname _id nick image')
             .paginate(page, itemsPerPage, (err, messages, total) => {
                 if (err) {
@@ -114,9 +115,10 @@ module.exports = class MessageController {
     static getEmmitMessages(req, res) {
         var userId = req.user.sub;
         var page = req.params.page ? req.params.page : '1';
-        var itemsPerPage = 3;
+        var itemsPerPage = 5;
 
         Message.find({ 'emitter': userId })
+            .sort({ 'created_at': -1 })
             .populate('emitter receiver', 'name surname _id nick image')
             .paginate(page, itemsPerPage, (err, messages, total) => {
                 if (err) {

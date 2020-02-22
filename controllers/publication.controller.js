@@ -48,7 +48,7 @@ module.exports = class PublicationController {
         publication.text = params.text;
         publication.file = 'null';
         publication.user = req.user.sub;
-        publication.created_at = moment().unix();
+        publication.createdAt = moment().unix();
 
         publication.save((err, publicationStored) => {
             if (err) {
@@ -79,7 +79,7 @@ module.exports = class PublicationController {
      */
     static getPublications(req, res) {
         var page = 1;
-        var itemsPerPage = 3;
+        var itemsPerPage = 4;
         if (req.params.page) {
             page = req.params.page;
         }
@@ -90,8 +90,11 @@ module.exports = class PublicationController {
                 var followsClean = [];
                 follows.forEach(follow => followsClean.push(follow.followed));
 
+                // Añadimos nuestras publicaciones
+                followsClean.push(req.user.sub);
+
                 Publication.find({ user: { "$in": followsClean } })
-                    .sort({ 'created_at': -1 })
+                    .sort({ 'createdAt': -1 })
                     .populate('user')
                     .paginate(page, itemsPerPage, (err, publication, total) => {
                         if (err) {
@@ -122,6 +125,51 @@ module.exports = class PublicationController {
                 return res.status(500).send({
                     OK: false,
                     message: 'Error al devolver el seguimiento'
+                });
+            });
+    }
+
+
+    /**
+     * Devuelve todas las publicaciones de los que seguimos
+     * @param {*} req 
+     * @param {*} res 
+     */
+    static getPublicationsUser(req, res) {
+        var page = 1;
+        var itemsPerPage = 4;
+        if (req.params.page) {
+            page = req.params.page;
+        }
+
+        var userId = req.user.sub;
+        if (req.params.UserId) {
+            userId = req.params.UserId;
+        }
+        Publication.find({ user: userId })
+            .sort({ 'createdAt': -1 })
+            .populate('user')
+            .paginate(page, itemsPerPage, (err, publication, total) => {
+                if (err) {
+                    return res.status(500).send({
+                        OK: false,
+                        message: 'Error del servicio al devolver publicaciones'
+                    });
+                }
+                if (!publication) {
+                    return res.status(404).send({
+                        OK: false,
+                        message: 'No hay publicaciones'
+                    });
+                }
+
+                return res.status(200).send({
+                    OK: true,
+                    page: page,
+                    pages: Math.ceil(total / itemsPerPage),
+                    itemsPerPage: itemsPerPage,
+                    total: total,
+                    publication: publication,
                 });
             });
     }
@@ -224,7 +272,7 @@ module.exports = class PublicationController {
                             return res.status(200).send({ OK: true, publication: publicationUpdated });
                         });
                     } else {
-                        console.log('eliminamos y pa casa');
+                        // console.log('eliminamos y pa casa');
                         return removeFileOfUploads(res, filePath, 'No tienes permiso para actualizar esta publicación');
                     }
                 });

@@ -21,6 +21,7 @@ const api = express.Router();
 api.get('/checkPublication', mda.authentification, PublicationController.checkPublication);
 api.post('/publication', mda.authentification, PublicationController.savePublication);
 api.get('/publications/:page?', mda.authentification, PublicationController.getPublications);
+api.get('/publicationsUser/:UserId/:page?', mda.authentification, PublicationController.getPublicationsUser);
 api.get('/publication/:id', mda.authentification, PublicationController.getPublication);
 api.delete('/publication/:id', mda.authentification, PublicationController.deletePublication);
 api.post('/uploadImagePub/:id', [mda.authentification, mdUploadPub], PublicationController.uploadImage);
